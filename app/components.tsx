@@ -1,20 +1,7 @@
-// app/routes/games.$id.tsx
-import { LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData, Link } from "@remix-run/react";
-import { db } from "~/db.server";
+import { Link } from "@remix-run/react";
+import type { BoardGame } from "./db.server";
 
-export async function loader({ params }: LoaderFunctionArgs) {
-  const gameId = Number(params.id);
-  return db.getBoardGameById(gameId);
-}
-
-export default function GameDetail() {
-  const game = useLoaderData<typeof loader>();
-
-  if (!game) {
-    return <div>Game not found</div>;
-  }
-
+export function GameDetails({ game }: { game: BoardGame }) {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">{game.name}</h1>

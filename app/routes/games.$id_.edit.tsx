@@ -1,48 +1,11 @@
 // app/routes/games.$id.edit.tsx
-import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData, redirect, Form, json } from "@remix-run/react";
+import { LoaderFunctionArgs } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import { db } from "~/db.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const gameId = parseInt(params.id as string, 10);
   return db.getBoardGameById(gameId);
-}
-
-export async function action({ request, params }: ActionFunctionArgs) {
-  if (typeof params.id !== "string") {
-    return { error: "Invalid game ID." };
-  }
-  const gameId = parseInt(params.id, 10);
-  if (isNaN(gameId)) {
-    return { error: "Game ID must be a number." };
-  }
-
-  const formData = await request.formData();
-  const name = formData.get("name");
-  const description = formData.get("description");
-  const minPlayers = parseInt(formData.get("minPlayers")?.toString() || "", 10);
-  const maxPlayers = parseInt(formData.get("maxPlayers")?.toString() || "", 10);
-  const playTime = parseInt(formData.get("playTime")?.toString() || "", 10);
-
-  if (
-    typeof name !== "string" ||
-    typeof description !== "string" ||
-    isNaN(minPlayers) ||
-    isNaN(maxPlayers) ||
-    isNaN(playTime)
-  ) {
-    return json({ error: "Invalid form data." }, 400);
-  }
-
-  db.updateBoardGame(gameId, {
-    name,
-    description,
-    minPlayers,
-    maxPlayers,
-    playTime,
-  });
-
-  return redirect(`/games/${gameId}`);
 }
 
 export default function EditGame() {
@@ -51,7 +14,13 @@ export default function EditGame() {
   return (
     <div className="mx-auto p-4 w-[300px]">
       <h1 className="text-2xl font-bold mb-4">Edit {game.name}</h1>
-      <Form method="post">
+      <form
+        method="post"
+        onSubmit={(e) => {
+          e.preventDefault();
+          // do something I guess?
+        }}
+      >
         <div className="mb-4">
           <label
             htmlFor="name"
@@ -132,7 +101,44 @@ export default function EditGame() {
         >
           Save
         </button>
-      </Form>
+      </form>
     </div>
   );
 }
+
+// -------------- code for cheaters --------------
+
+// if (typeof params.id !== "string") {
+//   return json({ error: "Invalid game ID." }, { status: 400 });
+// }
+// const gameId = parseInt(params.id, 10);
+// if (isNaN(gameId)) {
+//   return json({ error: "Game ID must be a number." }, { status: 400 });
+// }
+
+// const formData = await request.formData();
+// const name = formData.get("name");
+// const description = formData.get("description");
+// const minPlayers = parseInt(formData.get("minPlayers")?.toString() || "", 10);
+// const maxPlayers = parseInt(formData.get("maxPlayers")?.toString() || "", 10);
+// const playTime = parseInt(formData.get("playTime")?.toString() || "", 10);
+
+// if (
+//   typeof name !== "string" ||
+//   typeof description !== "string" ||
+//   isNaN(minPlayers) ||
+//   isNaN(maxPlayers) ||
+//   isNaN(playTime)
+// ) {
+//   return json({ error: "Invalid form data." }, 400);
+// }
+
+// db.updateBoardGame(gameId, {
+//   name,
+//   description,
+//   minPlayers,
+//   maxPlayers,
+//   playTime,
+// });
+
+// return redirect(`/games/${gameId}`);
