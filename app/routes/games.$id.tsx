@@ -1,19 +1,27 @@
 // app/routes/games.$id.tsx
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData, Link } from "@remix-run/react";
+import {
+  useLoaderData,
+  Link,
+  useRouteError,
+  isRouteErrorResponse,
+} from "@remix-run/react";
 import { db } from "~/db.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const gameId = Number(params.id);
-  return db.getBoardGameById(gameId);
+
+  const game = await db.getBoardGameById(gameId);
+
+  if (!game) {
+    throw new Response("Game not found", { status: 404 });
+  }
+
+  return { game };
 }
 
 export default function GameDetail() {
-  const game = useLoaderData<typeof loader>();
-
-  if (!game) {
-    return <div>Game not found</div>;
-  }
+  const { game } = useLoaderData<typeof loader>();
 
   return (
     <div className="container mx-auto p-4">
@@ -31,4 +39,30 @@ export default function GameDetail() {
       </Link>
     </div>
   );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div>
+        <h1>
+          {error.status} {error.statusText}
+        </h1>
+        <p>{error.data}</p>
+      </div>
+    );
+  } else if (error instanceof Error) {
+    return (
+      <div>
+        <h1>Error</h1>
+        <p>{error.message}</p>
+        <p>The stack trace is:</p>
+        <pre>{error.stack}</pre>
+      </div>
+    );
+  } else {
+    return <h1>Unknown Error</h1>;
+  }
 }

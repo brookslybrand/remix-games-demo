@@ -5,7 +5,14 @@ import { db } from "~/db.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const gameId = parseInt(params.id as string, 10);
-  return db.getBoardGameById(gameId);
+
+  const game = await db.getBoardGameById(gameId);
+
+  if (!game) {
+    throw new Response("Game not found", { status: 404 });
+  }
+
+  return { game };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -46,7 +53,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function EditGame() {
-  const game = useLoaderData<typeof loader>();
+  const { game } = useLoaderData<typeof loader>();
 
   return (
     <div className="mx-auto p-4 w-[300px]">
